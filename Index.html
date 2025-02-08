@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelacak IP Address</title>
+    <style>
+        /* Desain Umum */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-top: 30px;
+            color: #28a745;
+        }
+
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            border: 1px solid #28a745;
+            background-color: #1e1e1e;
+            color: white;
+        }
+
+        button {
+            background-color: #28a745;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #result {
+            margin-top: 20px;
+            background-color: #222;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 0.9rem;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            animation: rgb-border 3s linear infinite; /* Animasi RGB border */
+        }
+
+        /* Animasi Loading */
+        .loader {
+            border: 5px solid #f3f3f3; 
+            border-top: 5px solid #28a745;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite; /* Waktu animasi 2 detik */
+            margin-top: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes rgb-border {
+            0% { border-color: red; }
+            33% { border-color: green; }
+            66% { border-color: blue; }
+            100% { border-color: red; }
+        }
+
+        /* Link Maps */
+        a {
+            color: #28a745;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Judul data */
+        .data-label {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #F44336; /* Merah yang lebih lembut */
+            margin-top: 10px;
+        }
+
+        .data-value {
+            font-size: 1rem;
+            color: white; /* Tetap putih untuk data */
+            margin-top: 5px;
+        }
+
+        /* Deskripsi dibawah kotak pencarian */
+        .description {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔍 Pelacak IP Address</h2>
+        <input type="text" id="ipInput" placeholder="Masukkan IP target">
+        <button onclick="trackIP()">Lacak</button>
+
+        <div id="loading" style="display:none;">
+            <div class="loader"></div>
+            <p>Menunggu hasil...</p>
+        </div>
+
+        <div id="result"></div>
+
+        <!-- Deskripsi dan kredits -->
+        <div class="description">
+            <p>Website ini tidak dibuat untuk merugikan pihak yang gak bersalah, Jadi gunakan sebijak-bijaknya.</p>
+            <p>Developer by Samuel</p>
+        </div>
+    </div>
+
+    <script>
+        function trackIP() {
+            let ip = document.getElementById("ipInput").value;
+            if (ip === "") {
+                alert("Masukkan IP Address!");
+                return;
+            }
+
+            let apiURL = `https://ipwho.is/${ip}`;
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("result").innerHTML = "";  // Clear previous results
+
+            // Simulasi menunggu 2 detik untuk loading
+            setTimeout(() => {
+                fetch(apiURL)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Jaringan bermasalah atau IP tidak valid');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        document.getElementById("loading").style.display = "none"; // Hide loading
+
+                        if (data.success) {
+                            let resultHTML = `
+                                <h3>📌 Hasil Pelacakan</h3>
+                                <div class="data-label">IP:</div>
+                                <div class="data-value">${data.ip}</div>
+
+                                <div class="data-label">Type IP:</div>
+                                <div class="data-value">${data.type}</div>
+
+                                <div class="data-label">Country:</div>
+                                <div class="data-value">${data.country}</div>
+
+                                <div class="data-label">Country Code:</div>
+                                <div class="data-value">${data.country_code}</div>
+
+                                <div class="data-label">City:</div>
+                                <div class="data-value">${data.city}</div>
+
+                                <div class="data-label">Continent:</div>
+                                <div class="data-value">${data.continent}</div>
+
+                                <div class="data-label">Continent Code:</div>
+                                <div class="data-value">${data.continent_code}</div>
+
+                                <div class="data-label">Region:</div>
+                                <div class="data-value">${data.region}</div>
+
+                                <div class="data-label">Region Code:</div>
+                                <div class="data-value">${data.region_code || 'N/A'}</div>
+
+                                <div class="data-label">Latitude:</div>
+                                <div class="data-value">${data.latitude}</div>
+
+                                <div class="data-label">Longitude:</div>
+                                <div class="data-value">${data.longitude}</div>
+
+                                <div class="data-label">Maps url:</div>
+                                <div class="data-value"><a href="https://www.google.com/maps/@${data.latitude},${data.longitude}" target="_blank">${data.latitude}, ${data.longitude}</a></div>
+
+                                <div class="data-label">EU:</div>
+                                <div class="data-value">${data.is_eu}</div>
+
+                                <div class="data-label">Postal:</div>
+                                <div class="data-value">${data.postal}</div>
+
+                                <div class="data-label">Calling Code:</div>
+                                <div class="data-value">${data.calling_code}</div>
+
+                                <div class="data-label">Capital:</div>
+                                <div class="data-value">${data.capital}</div>
+
+                                <div class="data-label">Borders:</div>
+                                <div class="data-value">${data.borders}</div>
+
+                                <div class="data-label">Country Flag:</div>
+                                <div class="data-value">${data.flag.emoji}</div>
+
+                                <div class="data-label">ASN:</div>
+                                <div class="data-value">${data.connection.asn}</div>
+
+                                <div class="data-label">ORG:</div>
+                                <div class="data-value">${data.connection.org}</div>
+
+                                <div class="data-label">ISP:</div>
+                                <div class="data-value">${data.connection.isp}</div>
+
+                                <div class="data-label">Domain:</div>
+                                <div class="data-value"><a href="http://${data.connection.domain}" target="_blank">${data.connection.domain}</a></div>
+
+                                <div class="data-label">Timezone ID:</div>
+                                <div class="data-value">${data.timezone.id}</div>
+
+                                <div class="data-label">Timezone ABBR:</div>
+                                <div class="data-value">${data.timezone.abbr}</div>
+
+                                <div class="data-label">Is DST:</div>
+                                <div class="data-value">${data.timezone.is_dst}</div>
+
+                                <div class="data-label">Timezone Offset:</div>
+                                <div class="data-value">${data.timezone.offset}</div>
+
+                                <div class="data-label">UTC:</div>
+                                <div class="data-value">${data.timezone.utc}</div>
+
+                                <div class="data-label">Current Time:</div>
+                                <div class="data-value">${data.timezone.current_time}</div>
+                            `;
+                            document.getElementById("result").innerHTML = resultHTML;
+                        } else {
+                            document.getElementById("result").innerHTML = `<p style="color: red;">⚠ IP tidak ditemukan atau ada masalah jaringan.</p>`;
+                        }
+                    })
+                    .catch(error => {
+                        document.getElementById("loading").style.display = "none";
+                        document.getElementById("result").innerHTML = `<p style="color: red;">Terjadi kesalahan: ${error.message}</p>`;
+                    });
+            }, 2000); // Simulasi delay 2 detik sebelum fetch data
+        }
+    </script>
+</body>
+</html>
